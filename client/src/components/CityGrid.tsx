@@ -12,8 +12,8 @@ const GRID_SIZE = 50;
 const CELL_SIZE = 20; // pixels
 
 export default function CityGrid({ buildings, units, mapResources, onBuildingClick }: CityGridProps) {
-  const getBuildingColor = (type: string, isConstructing: boolean) => {
-    if (isConstructing) return '#7a7a7a';
+  const getBuildingColor = (type: string, isComplete: boolean) => {
+    if (!isComplete) return '#7a7a7a'; // Gray for under construction
     
     const colors: Record<string, string> = {
       TOWN_CENTER: '#e94560',
@@ -72,11 +72,11 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
         ))}
 
         {/* Units */}
-        {units.map((unit) => (
+        {units.filter(u => u.gridX !== undefined && u.gridY !== undefined).map((unit) => (
           <circle
             key={unit.id}
-            cx={unit.gridX * CELL_SIZE + CELL_SIZE / 2}
-            cy={unit.gridY * CELL_SIZE + CELL_SIZE / 2}
+            cx={unit.gridX! * CELL_SIZE + CELL_SIZE / 2}
+            cy={unit.gridY! * CELL_SIZE + CELL_SIZE / 2}
             r={CELL_SIZE / 4}
             fill={unit.isTraining ? '#7a7a7a' : '#4169e1'}
             stroke="#fff"
@@ -92,7 +92,7 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
             y={building.gridY * CELL_SIZE}
             width={CELL_SIZE * (building.type === 'TOWN_CENTER' ? 3 : 2)}
             height={CELL_SIZE * (building.type === 'TOWN_CENTER' ? 3 : 2)}
-            fill={getBuildingColor(building.type, building.isConstructing)}
+            fill={getBuildingColor(building.type, building.isComplete)}
             stroke="#fff"
             strokeWidth="2"
             className="building"
