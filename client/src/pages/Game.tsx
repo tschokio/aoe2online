@@ -60,14 +60,31 @@ export default function Game() {
     });
 
     newSocket.on('game-state-update', (update: Partial<GameState>) => {
+      console.log('[Socket] game-state-update:', update);
       setGameState(prev => prev ? { ...prev, ...update } : null);
     });
 
     newSocket.on('resource-update', (resources) => {
-      setGameState(prev => prev ? { ...prev, player: { ...prev.player, resources } } : null);
+      console.log('[Socket] resource-update:', resources);
+      setGameState(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          player: {
+            ...prev.player,
+            resources: {
+              food: resources.food,
+              wood: resources.wood,
+              gold: resources.gold,
+              stone: resources.stone
+            }
+          }
+        };
+      });
     });
 
     newSocket.on('building-completed', (building: Building) => {
+      console.log('[Socket] building-completed:', building);
       setGameState(prev => {
         if (!prev) return null;
         const buildings = prev.buildings.map(b => b.id === building.id ? building : b);
@@ -76,9 +93,19 @@ export default function Game() {
     });
 
     newSocket.on('unit-completed', (unit: Unit) => {
+      console.log('[Socket] unit-completed:', unit);
       setGameState(prev => {
         if (!prev) return null;
         const units = prev.units.map(u => u.id === unit.id ? unit : u);
+        return { ...prev, units };
+      });
+    });
+
+    newSocket.on('unit-task-updated', ({ unitId, task }) => {
+      console.log('[Socket] unit-task-updated:', unitId, task);
+      setGameState(prev => {
+        if (!prev) return null;
+        const units = prev.units.map(u => u.id === unitId ? { ...u, currentTask: task } : u);
         return { ...prev, units };
       });
     });
@@ -338,9 +365,81 @@ export default function Game() {
               </button>
             </div>
           ) : (
-            <div className="info-placeholder">
-              <p>Click on a building to see details</p>
-            </div>
+            <>
+              {/* Production Queue Overview */}
+              <div className="production-overview">
+                <h3>Production Queue</h3>
+                
+                {/* Buildings under construction */}
+                {gameState.buildings.filter(b => !b.isComplete).length > 0 && (
+                  <div className="queue-section">
+                    <h4>🔨 Construction ({gameState.buildings.filter(b => !b.isComplete).length})</h4>
+                    {gameState.buildings
+                      .filter(b => !b.isComplete)
+                      .map(building => (
+                        <div key={building.id} className="queue-item" style={{ 
+                          padding: '6px', 
+                          background: '#1a2332', 
+                          marginBottom: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <div style={{ fontWeight: 'bold' }}>{BUILDINGS[building.type].name}</div>
+                          <div style={{ color: '#888', fontSize: '10px' }}>
+                            Completes: {building.constructionCompleteAt ? 
+                              new Date(building.constructionCompleteAt).toLocaleTimeString() : 
+                              'Soon'}
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+                
+                {/* Units training */}
+                {gameState.units.filter(u => !u.isTrained).length > 0 && (
+                  <div className="queue-section">
+                    <h4>⚔️ Training ({gameState.units.filter(u => !u.isTrained).length})</h4>
+                    {gameState.units
+                      .filter(u => !u.isTrained)
+                      .map(unit => (
+                        <div key={unit.id} className="queue-item" style={{ 
+                          padding: '6px', 
+                          background: '#1a2332', 
+                          marginBottom: '4px',
+                          fontSize: '12px'
+                        }}>
+                          <div style={{ fontWeight: 'bold' }}>{unit.type}</div>
+                          <div style={{ color: '#888', fontSize: '10px' }}>
+                            Completes: {unit.trainingCompleteAt ? 
+                              new Date(unit.trainingCompleteAt).toLocaleTimeString() : 
+                              'Soon'}
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+                
+                {/* Working villagers summary */}
+                <div className="queue-section">
+                  <h4>👷 Villagers</h4>
+                  <div style={{ fontSize: '11px', padding: '4px' }}>
+                    <div>🍖 Food: {gameState.units.filter(u => u.currentTask === 'GATHER_FOOD' && u.isTrained).length}</div>
+                    <div>🪵 Wood: {gameState.units.filter(u => u.currentTask === 'GATHER_WOOD' && u.isTrained).length}</div>
+                    <div>💰 Gold: {gameState.units.filter(u => u.currentTask === 'GATHER_GOLD' && u.isTrained).length}</div>
+                    <div>🪨 Stone: {gameState.units.filter(u => u.currentTask === 'GATHER_STONE' && u.isTrained).length}</div>
+                    <div style={{ color: '#888' }}>⏸️ Idle: {gameState.units.filter(u => u.currentTask === 'IDLE' && u.isTrained).length}</div>
+                  </div>
+                </div>
+                
+                {gameState.buildings.filter(b => !b.isComplete).length === 0 && 
+                 gameState.units.filter(u => !u.isTrained).length === 0 && (
+                  <p style={{ color: '#888', fontSize: '12px', marginTop: '20px' }}>
+                    No active production. Build something or train units!
+                  </p>
+                )}
+              </div>
+            </>
           )}
         </aside>
       </div>

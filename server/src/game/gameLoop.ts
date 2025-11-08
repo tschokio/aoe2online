@@ -2,7 +2,7 @@ import pool from '../db.js';
 import { io } from '../app.js';
 import { BUILDINGS } from 'shared';
 
-const GAME_LOOP_INTERVAL = 5000; // 5 seconds
+const GAME_LOOP_INTERVAL = 1000; // 1 second for fast updates
 
 export function startGameLoop() {
   setInterval(async () => {
@@ -15,7 +15,7 @@ export function startGameLoop() {
     }
   }, GAME_LOOP_INTERVAL);
 
-  console.log('✓ Game loop started');
+  console.log('✓ Game loop started (1 second ticks)');
 }
 
 // Process completed buildings
@@ -151,11 +151,11 @@ async function generateResources() {
     const totalWorking = foodVillagers + woodVillagers + goldVillagers + stoneVillagers;
     if (totalWorking === 0) continue;
 
-    // Each villager generates 5 resources per tick (5 seconds) = 1 per second
-    const foodPerTick = foodVillagers * 5;
-    const woodPerTick = woodVillagers * 5;
-    const goldPerTick = goldVillagers * 4; // Gold slightly slower
-    const stonePerTick = stoneVillagers * 4; // Stone slightly slower
+    // Each villager generates 1 resource per second (tick is now 1 second)
+    const foodPerTick = foodVillagers * 1;
+    const woodPerTick = woodVillagers * 1;
+    const goldPerTick = goldVillagers * 1;
+    const stonePerTick = stoneVillagers * 1;
 
     try {
       await pool.query(
