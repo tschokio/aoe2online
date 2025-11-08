@@ -203,39 +203,40 @@ router.post('/logout', (_req, res: Response) => {
 
 // Initialize player's starting game state
 async function initializePlayerGame(playerId: number) {
+  console.log(`[INIT] Starting game initialization for player ${playerId}`);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    console.log('[INIT] Transaction started');
 
     // Create Town Center at center of grid
     const centerX = Math.floor(GAME_CONFIG.GRID_SIZE / 2);
     const centerY = Math.floor(GAME_CONFIG.GRID_SIZE / 2);
+    console.log(`[INIT] Grid center: ${centerX}, ${centerY}`);
 
     const townCenterHealth = 2400; // Town Center HP
-    await client.query(
+    const tcResult = await client.query(
       `INSERT INTO buildings (player_id, building_type, grid_x, grid_y, level, is_complete, health_current, health_max, construction_started_at, construction_complete_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+       RETURNING id`,
       [playerId, 'TOWN_CENTER', centerX, centerY, 1, true, townCenterHealth, townCenterHealth]
     );
+    console.log(`[INIT] Town Center created with ID: ${tcResult.rows[0].id}`);
 
     // Create starting villagers
     for (let i = 0; i < GAME_CONFIG.STARTING_POPULATION; i++) {
       const villagerHealth = 25;
       const villagerAttack = 3;
-      await client.query(
+      const unitResult = await client.query(
         `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7)`,
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7)
+         RETURNING id`,
         [playerId, 'VILLAGER', true, villagerHealth, villagerHealth, villagerAttack, 'IDLE']
       );
+      console.log(`[INIT] Villager ${i + 1} created with ID: ${unitResult.rows[0].id}`);
     }
 
     // TODO: Generate initial map resources (map_resources table not implemented yet)
-    // const resourcePlacements = [
-    //   { type: MapResourceType.TREE, count: 20, amount: 100 },
-    //   { type: MapResourceType.SHEEP, count: 8, amount: 50 },
-    //   { type: MapResourceType.GOLD_ORE, count: 5, amount: 200 },
-    //   { type: MapResourceType.STONE_ORE, count: 5, amount: 200 }
-    // ];
 
     await client.query('COMMIT');
     console.log(`✓ Initialized game for player ${playerId}: Town Center + ${GAME_CONFIG.STARTING_POPULATION} villagers`);

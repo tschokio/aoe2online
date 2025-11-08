@@ -30,6 +30,10 @@ export async function getGameState(playerId: number): Promise<GameState> {
 
   const player = playerResult.rows[0];
 
+  if (!player) {
+    throw new Error('Player not found');
+  }
+
   return {
     player: {
       id: player.id,
