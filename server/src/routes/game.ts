@@ -22,11 +22,10 @@ router.get('/state', async (req: AuthRequest, res: Response) => {
 
 // Helper to get full game state
 export async function getGameState(playerId: number): Promise<GameState> {
-  const [playerResult, buildingsResult, unitsResult, resourcesResult] = await Promise.all([
+  const [playerResult, buildingsResult, unitsResult] = await Promise.all([
     pool.query('SELECT * FROM players WHERE id = $1', [playerId]),
     pool.query('SELECT * FROM buildings WHERE player_id = $1', [playerId]),
-    pool.query('SELECT * FROM units WHERE player_id = $1', [playerId]),
-    pool.query('SELECT * FROM map_resources WHERE player_id = $1', [playerId])
+    pool.query('SELECT * FROM units WHERE player_id = $1', [playerId])
   ]);
 
   const player = playerResult.rows[0];
@@ -74,16 +73,7 @@ export async function getGameState(playerId: number): Promise<GameState> {
       currentTask: u.current_task,
       taskTargetId: u.task_target_id
     })),
-    mapResources: resourcesResult.rows.map((r: any) => ({
-      id: r.id,
-      playerId: r.player_id,
-      type: r.type,
-      gridX: r.grid_x,
-      gridY: r.grid_y,
-      amount: r.amount,
-      maxAmount: r.max_amount,
-      createdAt: r.created_at
-    }))
+    mapResources: [] // Map resources not implemented yet
   };
 }
 
