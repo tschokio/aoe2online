@@ -13,6 +13,7 @@ export default function Game() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [selectedBuildingType, setSelectedBuildingType] = useState<BuildingType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -159,7 +160,11 @@ export default function Game() {
           <BuildingMenu
             currentAge={gameState.player.currentAge}
             resources={gameState.player.resources}
-            onBuildingSelect={(type) => console.log('Selected:', type)}
+            onBuildingSelect={(type) => {
+              setSelectedBuildingType(type);
+              setSelectedBuilding(null);
+              console.log('Select a grid position to build', type);
+            }}
           />
         </aside>
 
@@ -168,7 +173,17 @@ export default function Game() {
             buildings={gameState.buildings}
             units={gameState.units}
             mapResources={gameState.mapResources}
-            onBuildingClick={setSelectedBuilding}
+            onBuildingClick={(building) => {
+              // If we're in building mode, place the building
+              if (selectedBuildingType) {
+                // This would need grid coordinates - simplified for now
+                console.log('Would place', selectedBuildingType, 'near', building);
+                setSelectedBuildingType(null);
+              } else {
+                // Otherwise, select the building to view info
+                setSelectedBuilding(building);
+              }
+            }}
           />
         </main>
 
@@ -178,10 +193,10 @@ export default function Game() {
               <h3>{BUILDINGS[selectedBuilding.type].name}</h3>
               <p>{BUILDINGS[selectedBuilding.type].description}</p>
               
-              {selectedBuilding.isConstructing ? (
+              {!selectedBuilding.isComplete ? (
                 <div className="constructing">
                   <p>🔨 Under construction...</p>
-                  <p>Completes: {new Date(selectedBuilding.constructionCompletesAt!).toLocaleTimeString()}</p>
+                  <p>Completes: {new Date(selectedBuilding.constructionCompleteAt!).toLocaleTimeString()}</p>
                 </div>
               ) : (
                 <div className="building-actions">
