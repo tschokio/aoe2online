@@ -43,42 +43,38 @@ export async function getGameState(playerId: number): Promise<GameState> {
         gold: player.gold,
         stone: player.stone
       },
-      population: player.population,
-      maxPopulation: player.max_population,
+      population: player.population_current,
+      maxPopulation: player.population_max,
       createdAt: player.created_at,
       updatedAt: player.updated_at
     },
-    buildings: buildingsResult.rows.map(b => ({
+    buildings: buildingsResult.rows.map((b: any) => ({
       id: b.id,
       playerId: b.player_id,
-      type: b.type,
+      type: b.building_type,
       gridX: b.grid_x,
       gridY: b.grid_y,
       level: b.level,
-      isConstructing: b.is_constructing,
+      isComplete: b.is_complete,
+      healthCurrent: b.health_current,
+      healthMax: b.health_max,
       constructionStartedAt: b.construction_started_at,
-      constructionCompletesAt: b.construction_completes_at,
-      createdAt: b.created_at,
-      updatedAt: b.updated_at
+      constructionCompleteAt: b.construction_complete_at
     })),
-    units: unitsResult.rows.map(u => ({
+    units: unitsResult.rows.map((u: any) => ({
       id: u.id,
       playerId: u.player_id,
-      type: u.type,
-      gridX: u.grid_x,
-      gridY: u.grid_y,
-      isTraining: u.is_training,
+      type: u.unit_type,
+      isTrained: u.is_trained,
+      healthCurrent: u.health_current,
+      healthMax: u.health_max,
+      attack: u.attack,
       trainingStartedAt: u.training_started_at,
-      trainingCompletesAt: u.training_completes_at,
-      task: u.task_type ? {
-        type: u.task_type,
-        targetResourceId: u.task_target_resource_id,
-        targetBuildingId: u.task_target_building_id
-      } : undefined,
-      createdAt: u.created_at,
-      updatedAt: u.updated_at
+      trainingCompleteAt: u.training_complete_at,
+      currentTask: u.current_task,
+      taskTargetId: u.task_target_id
     })),
-    mapResources: resourcesResult.rows.map(r => ({
+    mapResources: resourcesResult.rows.map((r: any) => ({
       id: r.id,
       playerId: r.player_id,
       type: r.type,

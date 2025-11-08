@@ -36,7 +36,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     const building = buildingResult.rows[0];
 
     // Check if building can train this unit
-    if (building.type !== unitDef.requiredBuilding) {
+    if (building.building_type !== unitDef.requiredBuilding) {
       return res.status(400).json({ error: 'This building cannot train this unit' });
     }
 
@@ -79,13 +79,16 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       // Calculate completion time
       const now = new Date();
       const completionTime = new Date(now.getTime() + (unitDef.trainingTime * 1000) / TIME_ACCELERATION);
+      const isTrained = unitDef.trainingTime === 0;
 
-      // Create unit
+      // Create unit (health/attack would come from unitDef if it had them)
+      const unitHealth = 25; // Default unit HP
+      const unitAttack = 5; // Default attack
       const result = await client.query(
-        `INSERT INTO units (player_id, type, grid_x, grid_y, is_training, training_started_at, training_completes_at, task_type)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [req.userId, unitType, building.grid_x + 1, building.grid_y, true, now, completionTime, 'IDLE']
+        [req.userId, unitType, isTrained, unitHealth, unitHealth, unitAttack, now, completionTime, 'IDLE']
       );
 
       await client.query('COMMIT');
@@ -100,15 +103,14 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       res.status(201).json({
         id: unit.id,
         playerId: unit.player_id,
-        type: unit.type,
-        gridX: unit.grid_x,
-        gridY: unit.grid_y,
-        isTraining: unit.is_training,
+        type: unit.unit_type,
+        isTrained: unit.is_trained,
+        healthCurrent: unit.health_current,
+        healthMax: unit.health_max,
+        attack: unit.attack,
         trainingStartedAt: unit.training_started_at,
-        trainingCompletesAt: unit.training_completes_at,
-        task: unit.task_type ? { type: unit.task_type } : undefined,
-        createdAt: unit.created_at,
-        updatedAt: unit.updated_at
+        trainingCompleteAt: unit.training_complete_at,
+        currentTask: unit.current_task
       });
     } catch (error) {
       await client.query('ROLLBACK');
@@ -134,22 +136,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       [req.userId]
     );
 
-    res.json(result.rows.map(u => ({
+    res.json(result.rows.map((u: any) => ({
       id: u.id,
       playerId: u.player_id,
-      type: u.type,
-      gridX: u.grid_x,
-      gridY: u.grid_y,
-      isTraining: u.is_training,
+      type: u.unit_type,
+      isTrained: u.is_trained,
+      healthCurrent: u.health_current,
+      healthMax: u.health_max,
+      attack: u.attack,
       trainingStartedAt: u.training_started_at,
-      trainingCompletesAt: u.training_completes_at,
-      task: u.task_type ? {
-        type: u.task_type,
-        targetResourceId: u.task_target_resource_id,
-        targetBuildingId: u.task_target_building_id
-      } : undefined,
-      createdAt: u.created_at,
-      updatedAt: u.updated_at
+      trainingCompleteAt: u.training_complete_at,
+      currentTask: u.current_task,
+      taskTargetId: u.task_target_id
     })));
   } catch (error) {
     console.error('Get units error:', error);

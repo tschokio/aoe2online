@@ -74,13 +74,15 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       // Calculate completion time
       const now = new Date();
       const completionTime = new Date(now.getTime() + (buildingDef.buildTime * 1000) / TIME_ACCELERATION);
+      const isComplete = buildingDef.buildTime === 0;
 
-      // Create building
+      // Create building (health values would come from buildingDef if it had them)
+      const buildingHealth = 500; // Default building HP
       const result = await client.query(
-        `INSERT INTO buildings (player_id, type, grid_x, grid_y, level, is_constructing, construction_started_at, construction_completes_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO buildings (player_id, building_type, grid_x, grid_y, level, is_complete, health_current, health_max, construction_started_at, construction_complete_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING *`,
-        [req.userId, buildingType, gridX, gridY, 1, buildingDef.buildTime > 0, now, completionTime]
+        [req.userId, buildingType, gridX, gridY, 1, isComplete, buildingHealth, buildingHealth, now, completionTime]
       );
 
       await client.query('COMMIT');
@@ -95,15 +97,15 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       res.status(201).json({
         id: building.id,
         playerId: building.player_id,
-        type: building.type,
+        type: building.building_type,
         gridX: building.grid_x,
         gridY: building.grid_y,
         level: building.level,
-        isConstructing: building.is_constructing,
+        isComplete: building.is_complete,
+        healthCurrent: building.health_current,
+        healthMax: building.health_max,
         constructionStartedAt: building.construction_started_at,
-        constructionCompletesAt: building.construction_completes_at,
-        createdAt: building.created_at,
-        updatedAt: building.updated_at
+        constructionCompleteAt: building.construction_complete_at
       });
     } catch (error) {
       await client.query('ROLLBACK');
@@ -129,18 +131,18 @@ router.get('/', async (req: AuthRequest, res: Response) => {
       [req.userId]
     );
 
-    res.json(result.rows.map(b => ({
+    res.json(result.rows.map((b: any) => ({
       id: b.id,
       playerId: b.player_id,
-      type: b.type,
+      type: b.building_type,
       gridX: b.grid_x,
       gridY: b.grid_y,
       level: b.level,
-      isConstructing: b.is_constructing,
+      isComplete: b.is_complete,
+      healthCurrent: b.health_current,
+      healthMax: b.health_max,
       constructionStartedAt: b.construction_started_at,
-      constructionCompletesAt: b.construction_completes_at,
-      createdAt: b.created_at,
-      updatedAt: b.updated_at
+      constructionCompleteAt: b.construction_complete_at
     })));
   } catch (error) {
     console.error('Get buildings error:', error);

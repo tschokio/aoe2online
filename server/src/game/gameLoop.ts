@@ -39,11 +39,11 @@ async function processCompletedBuildings() {
       );
 
       // Update player max population if building provides it
-      const buildingDef = BUILDINGS[building.type];
+      const buildingDef = BUILDINGS[building.building_type as keyof typeof BUILDINGS];
       if (buildingDef && buildingDef.populationProvided > 0) {
         await client.query(
           `UPDATE players 
-           SET max_population = max_population + $1
+           SET population_max = population_max + $1
            WHERE id = $2`,
           [buildingDef.populationProvided, building.player_id]
         );

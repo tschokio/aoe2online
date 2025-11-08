@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import pool from '../db.js';
 import { generateToken, AuthRequest } from '../middleware/auth.js';
 import { RegisterRequest, LoginRequest, Age } from 'shared';
-import { STARTING_RESOURCES, GAME_CONFIG, MapResourceType } from 'shared';
+import { STARTING_RESOURCES, GAME_CONFIG, MapResourceType, BUILDINGS } from 'shared';
 
 const router = Router();
 
@@ -206,18 +206,21 @@ async function initializePlayerGame(playerId: number) {
     const centerX = Math.floor(GAME_CONFIG.GRID_SIZE / 2);
     const centerY = Math.floor(GAME_CONFIG.GRID_SIZE / 2);
 
+    const townCenterHealth = 2400; // Town Center HP
     await client.query(
-      `INSERT INTO buildings (player_id, type, grid_x, grid_y, level, is_constructing)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [playerId, 'TOWN_CENTER', centerX, centerY, 1, false]
+      `INSERT INTO buildings (player_id, building_type, grid_x, grid_y, level, is_complete, health_current, health_max, construction_started_at, construction_complete_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+      [playerId, 'TOWN_CENTER', centerX, centerY, 1, true, townCenterHealth, townCenterHealth]
     );
 
     // Create starting villagers
     for (let i = 0; i < GAME_CONFIG.STARTING_POPULATION; i++) {
+      const villagerHealth = 25;
+      const villagerAttack = 3;
       await client.query(
-        `INSERT INTO units (player_id, type, grid_x, grid_y, is_training, task_type)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [playerId, 'VILLAGER', centerX + i + 1, centerY, false, 'IDLE']
+        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7)`,
+        [playerId, 'VILLAGER', true, villagerHealth, villagerHealth, villagerAttack, 'IDLE']
       );
     }
 
