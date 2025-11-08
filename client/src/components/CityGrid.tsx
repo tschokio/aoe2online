@@ -15,14 +15,26 @@ const GRID_SIZE = 50;
 const CELL_SIZE = 20; // pixels
 
 // Generate terrain features (run once on mount)
-const generateTerrain = () => {
+const generateTerrain = (seed: number = 42) => {
   const terrain: Array<{ x: number; y: number; type: 'water' | 'forest' | 'gold' | 'stone' }> = [];
+  
+  // Simple seeded random function
+  const seededRandom = (s: number) => {
+    const x = Math.sin(s) * 10000;
+    return x - Math.floor(x);
+  };
+  
+  let randomSeed = seed;
+  const random = () => {
+    randomSeed++;
+    return seededRandom(randomSeed);
+  };
   
   // Add water patches (2-3 small lakes)
   for (let i = 0; i < 2; i++) {
-    const centerX = Math.floor(Math.random() * (GRID_SIZE - 10)) + 5;
-    const centerY = Math.floor(Math.random() * (GRID_SIZE - 10)) + 5;
-    const size = Math.floor(Math.random() * 3) + 3;
+    const centerX = Math.floor(random() * (GRID_SIZE - 10)) + 5;
+    const centerY = Math.floor(random() * (GRID_SIZE - 10)) + 5;
+    const size = Math.floor(random() * 3) + 3;
     
     for (let dx = -size; dx <= size; dx++) {
       for (let dy = -size; dy <= size; dy++) {
@@ -35,39 +47,39 @@ const generateTerrain = () => {
   
   // Add forest patches (5-7 patches)
   for (let i = 0; i < 6; i++) {
-    const centerX = Math.floor(Math.random() * GRID_SIZE);
-    const centerY = Math.floor(Math.random() * GRID_SIZE);
-    const trees = Math.floor(Math.random() * 8) + 5;
+    const centerX = Math.floor(random() * GRID_SIZE);
+    const centerY = Math.floor(random() * GRID_SIZE);
+    const trees = Math.floor(random() * 8) + 5;
     
     for (let j = 0; j < trees; j++) {
-      const offsetX = Math.floor(Math.random() * 6) - 3;
-      const offsetY = Math.floor(Math.random() * 6) - 3;
+      const offsetX = Math.floor(random() * 6) - 3;
+      const offsetY = Math.floor(random() * 6) - 3;
       terrain.push({ x: centerX + offsetX, y: centerY + offsetY, type: 'forest' });
     }
   }
   
   // Add gold ore patches (2-3 patches)
   for (let i = 0; i < 3; i++) {
-    const centerX = Math.floor(Math.random() * GRID_SIZE);
-    const centerY = Math.floor(Math.random() * GRID_SIZE);
-    const ores = Math.floor(Math.random() * 4) + 3;
+    const centerX = Math.floor(random() * GRID_SIZE);
+    const centerY = Math.floor(random() * GRID_SIZE);
+    const ores = Math.floor(random() * 4) + 3;
     
     for (let j = 0; j < ores; j++) {
-      const offsetX = Math.floor(Math.random() * 4) - 2;
-      const offsetY = Math.floor(Math.random() * 4) - 2;
+      const offsetX = Math.floor(random() * 4) - 2;
+      const offsetY = Math.floor(random() * 4) - 2;
       terrain.push({ x: centerX + offsetX, y: centerY + offsetY, type: 'gold' });
     }
   }
   
   // Add stone ore patches (2-3 patches)
   for (let i = 0; i < 3; i++) {
-    const centerX = Math.floor(Math.random() * GRID_SIZE);
-    const centerY = Math.floor(Math.random() * GRID_SIZE);
-    const ores = Math.floor(Math.random() * 4) + 3;
+    const centerX = Math.floor(random() * GRID_SIZE);
+    const centerY = Math.floor(random() * GRID_SIZE);
+    const ores = Math.floor(random() * 4) + 3;
     
     for (let j = 0; j < ores; j++) {
-      const offsetX = Math.floor(Math.random() * 4) - 2;
-      const offsetY = Math.floor(Math.random() * 4) - 2;
+      const offsetX = Math.floor(random() * 4) - 2;
+      const offsetY = Math.floor(random() * 4) - 2;
       terrain.push({ x: centerX + offsetX, y: centerY + offsetY, type: 'stone' });
     }
   }
@@ -80,7 +92,7 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
   const [currentTime, setCurrentTime] = useState(Date.now());
   
   useEffect(() => {
-    setTerrain(generateTerrain());
+    setTerrain(generateTerrain(42)); // Fixed seed = same map every time
     
     // Update timer every second for construction countdowns
     const interval = setInterval(() => {

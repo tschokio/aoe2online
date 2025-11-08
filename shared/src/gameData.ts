@@ -26,7 +26,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'House',
     requiredAge: Age.DAWN,
     cost: { food: 0, wood: 30, gold: 0, stone: 0 },
-    buildTime: 45, // 45 seconds - quick start
+    buildTime: 5, // 5 seconds - fast paced!
     populationProvided: 5,
     gridSize: { width: 2, height: 2 },
     description: 'Increases population capacity by 5.'
@@ -36,7 +36,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Lumber Camp',
     requiredAge: Age.DAWN,
     cost: { food: 0, wood: 100, gold: 0, stone: 0 },
-    buildTime: 120, // 2 minutes
+    buildTime: 8, // 8 seconds
     populationProvided: 0,
     gridSize: { width: 2, height: 2 },
     description: 'Improves wood gathering efficiency.'
@@ -46,7 +46,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Mining Camp',
     requiredAge: Age.DAWN,
     cost: { food: 0, wood: 100, gold: 0, stone: 0 },
-    buildTime: 120, // 2 minutes
+    buildTime: 8, // 8 seconds
     populationProvided: 0,
     gridSize: { width: 2, height: 2 },
     description: 'Improves gold and stone gathering efficiency.'
@@ -56,7 +56,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Mill',
     requiredAge: Age.DAWN,
     cost: { food: 0, wood: 100, gold: 0, stone: 0 },
-    buildTime: 120, // 2 minutes
+    buildTime: 8, // 8 seconds
     populationProvided: 0,
     gridSize: { width: 2, height: 2 },
     description: 'Improves food gathering efficiency.'
@@ -66,7 +66,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Storage Pit',
     requiredAge: Age.DAWN,
     cost: { food: 0, wood: 120, gold: 0, stone: 0 },
-    buildTime: 180, // 3 minutes
+    buildTime: 10, // 10 seconds
     populationProvided: 0,
     gridSize: { width: 2, height: 2 },
     description: 'Increases maximum resource capacity.'
@@ -76,7 +76,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Barracks',
     requiredAge: Age.HEARTH,
     cost: { food: 0, wood: 175, gold: 0, stone: 0 },
-    buildTime: 600, // 10 minutes - much longer for advanced buildings
+    buildTime: 15, // 15 seconds - military buildings still quick
     populationProvided: 0,
     gridSize: { width: 3, height: 2 },
     description: 'Trains basic infantry units.'
@@ -86,7 +86,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Archery Range',
     requiredAge: Age.HEARTH,
     cost: { food: 0, wood: 150, gold: 0, stone: 0 },
-    buildTime: 600, // 10 minutes
+    buildTime: 15, // 15 seconds
     populationProvided: 0,
     gridSize: { width: 3, height: 2 },
     description: 'Trains basic ranged units.'
@@ -96,7 +96,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Stable',
     requiredAge: Age.HEARTH,
     cost: { food: 0, wood: 150, gold: 0, stone: 0 },
-    buildTime: 600, // 10 minutes
+    buildTime: 15, // 15 seconds
     populationProvided: 0,
     gridSize: { width: 3, height: 2 },
     description: 'Trains basic cavalry units.'
@@ -106,7 +106,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Blacksmith',
     requiredAge: Age.HEARTH,
     cost: { food: 0, wood: 150, gold: 100, stone: 0 },
-    buildTime: 480, // 8 minutes
+    buildTime: 12, // 12 seconds
     populationProvided: 0,
     gridSize: { width: 2, height: 2 },
     description: 'Researches military unit upgrades.'
@@ -116,7 +116,7 @@ export const BUILDINGS: Record<BuildingType, BuildingDefinition> = {
     name: 'Wall',
     requiredAge: Age.HEARTH,
     cost: { food: 0, wood: 0, gold: 0, stone: 5 },
-    buildTime: 15, // 15 seconds - walls are quick
+    buildTime: 2, // 2 seconds - walls are instant
     populationProvided: 0,
     gridSize: { width: 1, height: 1 },
     description: 'Provides basic defense for your town.'
@@ -131,7 +131,7 @@ export const UNITS: Record<UnitType, UnitDefinition> = {
     requiredAge: Age.DAWN,
     requiredBuilding: BuildingType.TOWN_CENTER,
     cost: { food: 50, wood: 0, gold: 0, stone: 0 },
-    trainingTime: 60, // 1 minute
+    trainingTime: 10, // 10 seconds - fast!
     populationCost: 1,
     description: 'Gathers resources and constructs buildings.'
   },
@@ -141,7 +141,7 @@ export const UNITS: Record<UnitType, UnitDefinition> = {
     requiredAge: Age.HEARTH,
     requiredBuilding: BuildingType.BARRACKS,
     cost: { food: 50, wood: 0, gold: 0, stone: 0 },
-    trainingTime: 120, // 2 minutes
+    trainingTime: 8, // 8 seconds
     populationCost: 1,
     description: 'Basic, cheap infantry unit.'
   },
