@@ -32,7 +32,12 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
 fi
 
 echo ""
-echo -e "${GREEN}[1/7] Updating system packages...${NC}"
+echo -e "${GREEN}[1/7] Cleaning up old Docker repositories and updating system...${NC}"
+# Remove any old/conflicting Docker repository configurations first
+sudo rm -f /etc/apt/sources.list.d/docker.list
+sudo rm -f /etc/apt/keyrings/docker.gpg
+echo "Old Docker repositories removed"
+
 sudo apt-get update
 sudo apt-get upgrade -y
 
@@ -45,20 +50,17 @@ if ! command -v docker &> /dev/null; then
     
     echo "Detected OS: $OS_ID ($VERSION_CODENAME)"
     
-    # Remove any old Docker repository configurations
-    echo "Cleaning up old Docker repositories..."
-    sudo rm -f /etc/apt/sources.list.d/docker.list
-    sudo rm -f /etc/apt/keyrings/docker.gpg
-    
     # Install Docker prerequisites
     sudo apt-get install -y ca-certificates curl gnupg
     sudo install -m 0755 -d /etc/apt/keyrings
     
     # Download Docker GPG key based on OS
     if [ "$OS_ID" = "ubuntu" ]; then
+        echo "Adding Ubuntu Docker repository..."
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     else
         # Default to Debian
+        echo "Adding Debian Docker repository..."
         curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
     fi
     
@@ -70,12 +72,14 @@ if ! command -v docker &> /dev/null; then
           "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
           $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        echo "Ubuntu Docker repository added"
     else
         # Default to Debian
         echo \
           "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
           $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        echo "Debian Docker repository added"
     fi
     
     echo "Updating package lists with new Docker repository..."
