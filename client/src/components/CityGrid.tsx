@@ -272,7 +272,3 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
     </div>
   );
 }
-      </svg>
-    </div>
-  );
-}
