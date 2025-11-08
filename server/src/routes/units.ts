@@ -80,14 +80,18 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       const now = new Date();
       const completionTime = new Date(now.getTime() + (unitDef.trainingTime * 1000) / TIME_ACCELERATION);
 
+      // Spawn unit near the building that trained it
+      const spawnX = building.grid_x + (building.building_type === 'TOWN_CENTER' ? 3 : 2); // Spawn to the right
+      const spawnY = building.grid_y;
+
       // Create unit (health/attack would come from unitDef if it had them)
       const unitHealth = 25; // Default unit HP
       const unitAttack = 5; // Default attack
       const result = await client.query(
-        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task, grid_x, grid_y)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING *`,
-        [req.userId, unitType, false, unitHealth, unitHealth, unitAttack, now, completionTime, 'TRAINING']
+        [req.userId, unitType, false, unitHealth, unitHealth, unitAttack, now, completionTime, 'TRAINING', spawnX, spawnY]
       );
 
       await client.query('COMMIT');
@@ -151,6 +155,61 @@ router.get('/', async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Get units error:', error);
     res.status(500).json({ error: 'Failed to get units' });
+  }
+});
+
+// Assign task to a unit
+router.patch('/:unitId/task', async (req: AuthRequest, res: Response) => {
+  try {
+    if (!req.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const unitId = parseInt(req.params.unitId);
+    const { task } = req.body as { task: string };
+
+    // Validate task
+    const validTasks = ['IDLE', 'GATHER_FOOD', 'GATHER_WOOD', 'GATHER_GOLD', 'GATHER_STONE'];
+    if (!validTasks.includes(task)) {
+      return res.status(400).json({ error: 'Invalid task' });
+    }
+
+    // Verify unit belongs to player and is trained
+    const unitResult = await pool.query(
+      'SELECT * FROM units WHERE id = $1 AND player_id = $2',
+      [unitId, req.userId]
+    );
+
+    if (unitResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Unit not found' });
+    }
+
+    const unit = unitResult.rows[0];
+
+    if (!unit.is_trained) {
+      return res.status(400).json({ error: 'Unit is still training' });
+    }
+
+    if (unit.unit_type !== 'VILLAGER') {
+      return res.status(400).json({ error: 'Only villagers can be assigned gathering tasks' });
+    }
+
+    // Update task
+    await pool.query(
+      'UPDATE units SET current_task = $1 WHERE id = $2',
+      [task, unitId]
+    );
+
+    // Emit update via Socket.io
+    io.to(`player:${req.userId}`).emit('unit-task-updated', {
+      unitId,
+      task
+    });
+
+    res.json({ success: true, unitId, task });
+  } catch (error) {
+    console.error('Assign task error:', error);
+    res.status(500).json({ error: 'Failed to assign task' });
   }
 });
 

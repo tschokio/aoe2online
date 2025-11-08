@@ -9,6 +9,7 @@ export function startGameLoop() {
     try {
       await processCompletedBuildings();
       await processCompletedUnits();
+      await generateResources();
     } catch (error) {
       console.error('Game loop error:', error);
     }
@@ -122,6 +123,69 @@ async function processCompletedUnits() {
       console.log(`Unit ${unit.unit_type} completed for player ${unit.player_id}`);
     } catch (error) {
       console.error('Error processing completed unit:', error);
+    }
+  }
+}
+
+// Generate resources from villagers based on their assigned tasks
+async function generateResources() {
+  // Get all players and their villagers by task
+  const players = await pool.query(`
+    SELECT 
+      p.id,
+      COUNT(CASE WHEN u.current_task = 'GATHER_FOOD' AND u.is_trained = true THEN 1 END) as food_villagers,
+      COUNT(CASE WHEN u.current_task = 'GATHER_WOOD' AND u.is_trained = true THEN 1 END) as wood_villagers,
+      COUNT(CASE WHEN u.current_task = 'GATHER_GOLD' AND u.is_trained = true THEN 1 END) as gold_villagers,
+      COUNT(CASE WHEN u.current_task = 'GATHER_STONE' AND u.is_trained = true THEN 1 END) as stone_villagers
+    FROM players p
+    LEFT JOIN units u ON u.player_id = p.id AND u.unit_type = 'VILLAGER'
+    GROUP BY p.id
+  `);
+
+  for (const player of players.rows) {
+    const foodVillagers = parseInt(player.food_villagers) || 0;
+    const woodVillagers = parseInt(player.wood_villagers) || 0;
+    const goldVillagers = parseInt(player.gold_villagers) || 0;
+    const stoneVillagers = parseInt(player.stone_villagers) || 0;
+    
+    const totalWorking = foodVillagers + woodVillagers + goldVillagers + stoneVillagers;
+    if (totalWorking === 0) continue;
+
+    // Each villager generates 5 resources per tick (5 seconds) = 1 per second
+    const foodPerTick = foodVillagers * 5;
+    const woodPerTick = woodVillagers * 5;
+    const goldPerTick = goldVillagers * 4; // Gold slightly slower
+    const stonePerTick = stoneVillagers * 4; // Stone slightly slower
+
+    try {
+      await pool.query(
+        `UPDATE players 
+         SET food = food + $1,
+             wood = wood + $2,
+             gold = gold + $3,
+             stone = stone + $4
+         WHERE id = $5`,
+        [foodPerTick, woodPerTick, goldPerTick, stonePerTick, player.id]
+      );
+
+      // Emit resource update via Socket.io
+      const updatedPlayer = await pool.query(
+        'SELECT food, wood, gold, stone FROM players WHERE id = $1',
+        [player.id]
+      );
+      
+      io.to(`player:${player.id}`).emit('resource-update', {
+        food: updatedPlayer.rows[0].food,
+        wood: updatedPlayer.rows[0].wood,
+        gold: updatedPlayer.rows[0].gold,
+        stone: updatedPlayer.rows[0].stone
+      });
+
+      if (totalWorking > 0) {
+        console.log(`Resources for player ${player.id}: +${foodPerTick}🍖 +${woodPerTick}🪵 +${goldPerTick}💰 +${stonePerTick}🪨 (${foodVillagers}/${woodVillagers}/${goldVillagers}/${stoneVillagers} workers)`);
+      }
+    } catch (error) {
+      console.error('Error generating resources:', error);
     }
   }
 }

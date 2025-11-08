@@ -13,6 +13,7 @@ export default function Game() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [selectedBuildingType, setSelectedBuildingType] = useState<BuildingType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -108,6 +109,26 @@ export default function Game() {
     }
   };
 
+  const handleAssignTask = async (unitId: number, task: string) => {
+    try {
+      const response = await fetch(`/api/units/${unitId}/task`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ task })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to assign task');
+      }
+
+      await loadGameState(); // Refresh to show updated task
+      setError('');
+    } catch (err: any) {
+      setError(err.message || 'Failed to assign task');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -180,7 +201,13 @@ export default function Game() {
               } else {
                 // Otherwise, select the building to view info
                 setSelectedBuilding(building);
+                setSelectedUnit(null); // Clear unit selection
               }
+            }}
+            onUnitClick={(unit) => {
+              setSelectedUnit(unit);
+              setSelectedBuilding(null); // Clear building selection
+              setSelectedBuildingType(null);
             }}
             onGridClick={(gridX, gridY) => {
               if (selectedBuildingType) {
@@ -192,7 +219,35 @@ export default function Game() {
         </main>
 
         <aside className="info-panel">
-          {selectedBuilding ? (
+          {selectedUnit ? (
+            <div className="unit-info">
+              <h3>Villager</h3>
+              <p>Current Task: <strong>{selectedUnit.currentTask || 'IDLE'}</strong></p>
+              
+              <div className="task-buttons">
+                <h4>Assign Task:</h4>
+                <button onClick={() => handleAssignTask(selectedUnit.id, 'GATHER_FOOD')}>
+                  🍖 Gather Food
+                </button>
+                <button onClick={() => handleAssignTask(selectedUnit.id, 'GATHER_WOOD')}>
+                  🪵 Chop Wood
+                </button>
+                <button onClick={() => handleAssignTask(selectedUnit.id, 'GATHER_GOLD')}>
+                  💰 Mine Gold
+                </button>
+                <button onClick={() => handleAssignTask(selectedUnit.id, 'GATHER_STONE')}>
+                  🪨 Mine Stone
+                </button>
+                <button onClick={() => handleAssignTask(selectedUnit.id, 'IDLE')}>
+                  ⏸️ Set Idle
+                </button>
+              </div>
+              
+              <button onClick={() => setSelectedUnit(null)} className="close-btn">
+                Close
+              </button>
+            </div>
+          ) : selectedBuilding ? (
             <div className="building-info">
               <h3>{BUILDINGS[selectedBuilding.type].name}</h3>
               <p>{BUILDINGS[selectedBuilding.type].description}</p>

@@ -7,6 +7,7 @@ interface CityGridProps {
   units: Unit[];
   mapResources: MapResource[];
   onBuildingClick: (building: Building) => void;
+  onUnitClick?: (unit: Unit) => void;
   onGridClick?: (gridX: number, gridY: number) => void;
 }
 
@@ -74,7 +75,7 @@ const generateTerrain = () => {
   return terrain;
 };
 
-export default function CityGrid({ buildings, units, mapResources, onBuildingClick, onGridClick }: CityGridProps) {
+export default function CityGrid({ buildings, units, mapResources, onBuildingClick, onUnitClick, onGridClick }: CityGridProps) {
   const [terrain, setTerrain] = useState<ReturnType<typeof generateTerrain>>([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
   
@@ -225,9 +226,11 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
             cx={unit.gridX! * CELL_SIZE + CELL_SIZE / 2}
             cy={unit.gridY! * CELL_SIZE + CELL_SIZE / 2}
             r={CELL_SIZE / 4}
-            fill={unit.isTraining ? '#7a7a7a' : '#4169e1'}
+            fill={unit.isTrained ? (unit.currentTask === 'IDLE' ? '#ffd700' : '#32cd32') : '#7a7a7a'}
             stroke="#fff"
             strokeWidth="1"
+            style={{ cursor: onUnitClick && unit.isTrained ? 'pointer' : 'default' }}
+            onClick={() => onUnitClick && unit.isTrained && onUnitClick(unit)}
           />
         ))}
 
