@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aoe_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-aoe_online}
+      POSTGRES_USER: ${DB_USER:-aoe_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change_this_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-aoe_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Uncomment when ready to containerize the application
+  # server:
+  #   build:
+  #     context: .
+  #     dockerfile: server/Dockerfile
+  #   container_name: aoe_server
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${PORT:-3000}:${PORT:-3000}"
+  #   environment:
+  #     NODE_ENV: ${NODE_ENV:-production}
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_NAME: ${DB_NAME}
+  #     DB_USER: ${DB_USER}
+  #     DB_PASSWORD: ${DB_PASSWORD}
+  #     JWT_SECRET: ${JWT_SECRET}
+  #     TIME_ACCELERATION: ${TIME_ACCELERATION:-1}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./server:/app/server
+  #     - /app/node_modules
+
+  # client:
+  #   build:
+  #     context: .
+  #     dockerfile: client/Dockerfile
+  #   container_name: aoe_client
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - server
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: aoe_network

@@ -1,0 +1,165 @@
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0a0e1a;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: #16213e;
+  border-bottom: 2px solid #e94560;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-left h1 {
+  font-size: 1.5rem;
+  color: #e94560;
+  margin: 0;
+}
+
+.header-left p {
+  margin: 0;
+  color: #b0b0b0;
+  font-size: 0.9rem;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.population {
+  font-size: 1.1rem;
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: #e94560;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.logout-btn:hover {
+  background: #d63651;
+}
+
+.game-error {
+  background: #e94560;
+  color: white;
+  padding: 0.75rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.game-error button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.game-content {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  background: #16213e;
+  padding: 1rem;
+  overflow-y: auto;
+  border-right: 1px solid #2d3561;
+}
+
+.main-view {
+  padding: 1rem;
+  overflow: auto;
+  background: #0f1621;
+}
+
+.info-panel {
+  background: #16213e;
+  padding: 1rem;
+  overflow-y: auto;
+  border-left: 1px solid #2d3561;
+}
+
+.building-info h3 {
+  color: #e94560;
+  margin-bottom: 0.5rem;
+}
+
+.building-info p {
+  color: #b0b0b0;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.constructing {
+  background: #1a2332;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.constructing p {
+  margin: 0.25rem 0;
+}
+
+.building-actions button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #0f3460;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: background 0.3s;
+}
+
+.building-actions button:hover {
+  background: #16213e;
+}
+
+.close-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2d3561;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.close-btn:hover {
+  background: #3d4771;
+}
+
+.info-placeholder {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #7a7a7a;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  color: #e0e0e0;
+}
+
+.error {
+  color: #e94560;
+}

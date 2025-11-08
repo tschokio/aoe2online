@@ -1,0 +1,18 @@
+.city-grid-container {
+  background: #0a0e1a;
+  border-radius: 8px;
+  padding: 1rem;
+  overflow: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.city-grid {
+  background: #0f1621;
+  border: 2px solid #2d3561;
+  border-radius: 4px;
+}
+
+.building:hover {
+  opacity: 0.8;
+  filter: brightness(1.2);
+}

@@ -1,0 +1,27 @@
+.resource-display {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #0f1621;
+  border-radius: 6px;
+  border: 1px solid #2d3561;
+}
+
+.resource-icon {
+  font-size: 1.5rem;
+}
+
+.resource-amount {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  min-width: 3ch;
+  text-align: right;
+}
