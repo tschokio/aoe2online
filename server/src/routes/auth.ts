@@ -32,9 +32,9 @@ router.post('/register', async (req, res: Response) => {
 
     // Create player
     const result = await pool.query(
-      `INSERT INTO players (username, email, password_hash, current_age, food, wood, gold, stone, population, max_population)
+      `INSERT INTO players (username, email, password_hash, current_age, food, wood, gold, stone, population_current, population_max)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       RETURNING id, username, email, current_age, food, wood, gold, stone, population, max_population, created_at`,
+       RETURNING id, username, email, current_age, food, wood, gold, stone, population_current, population_max, created_at`,
       [
         username,
         email,
@@ -76,8 +76,8 @@ router.post('/register', async (req, res: Response) => {
           gold: player.gold,
           stone: player.stone
         },
-        population: player.population,
-        maxPopulation: player.max_population,
+        population: player.population_current,
+        maxPopulation: player.population_max,
         createdAt: player.created_at,
         updatedAt: player.created_at
       }
@@ -138,8 +138,8 @@ router.post('/login', async (req, res: Response) => {
           gold: player.gold,
           stone: player.stone
         },
-        population: player.population,
-        maxPopulation: player.max_population,
+        population: player.population_current,
+        maxPopulation: player.population_max,
         createdAt: player.created_at,
         updatedAt: player.updated_at
       }
@@ -158,7 +158,7 @@ router.get('/me', async (req: AuthRequest, res: Response) => {
     }
 
     const result = await pool.query(
-      'SELECT id, username, email, current_age, food, wood, gold, stone, population, max_population, created_at, updated_at FROM players WHERE id = $1',
+      'SELECT id, username, email, current_age, food, wood, gold, stone, population_current, population_max, created_at, updated_at FROM players WHERE id = $1',
       [req.userId]
     );
 
@@ -179,8 +179,8 @@ router.get('/me', async (req: AuthRequest, res: Response) => {
         gold: player.gold,
         stone: player.stone
       },
-      population: player.population,
-      maxPopulation: player.max_population,
+      population: player.population_current,
+      maxPopulation: player.population_max,
       createdAt: player.created_at,
       updatedAt: player.updated_at
     });
