@@ -12,6 +12,12 @@ const GRID_SIZE = 50;
 const CELL_SIZE = 20; // pixels
 
 export default function CityGrid({ buildings, units, mapResources, onBuildingClick }: CityGridProps) {
+  console.log('[CityGrid] Rendering with:', { 
+    buildingCount: buildings.length, 
+    buildings: buildings.map(b => ({ type: b.type, x: b.gridX, y: b.gridY })),
+    unitCount: units.length 
+  });
+
   const getBuildingColor = (type: string, isComplete: boolean) => {
     if (!isComplete) return '#7a7a7a'; // Gray for under construction
     

@@ -60,7 +60,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
     }
 
     // Check population capacity
-    if (player.population + unitDef.populationCost > player.max_population) {
+    if (player.population_current + unitDef.populationCost > player.population_max) {
       return res.status(400).json({ error: 'Population capacity reached' });
     }
 
@@ -71,7 +71,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       // Deduct resources and increase population
       await client.query(
         `UPDATE players 
-         SET food = food - $1, wood = wood - $2, gold = gold - $3, stone = stone - $4, population = population + $5
+         SET food = food - $1, wood = wood - $2, gold = gold - $3, stone = stone - $4, population_current = population_current + $5
          WHERE id = $6`,
         [unitDef.cost.food, unitDef.cost.wood, unitDef.cost.gold, unitDef.cost.stone, unitDef.populationCost, req.userId]
       );
