@@ -42,12 +42,18 @@ export default function Game() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
-    const newSocket = io('http://localhost:3000', {
+    // Construct WebSocket URL based on current page location
+    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+    const host = window.location.hostname;
+    const port = '3000'; // Backend always runs on port 3000
+    const socketUrl = `${protocol}//${host}:${port}`;
+
+    const newSocket = io(socketUrl, {
       auth: { token }
     });
 
     newSocket.on('connect', () => {
-      console.log('WebSocket connected');
+      console.log('WebSocket connected to', socketUrl);
       newSocket.emit('join-game');
     });
 

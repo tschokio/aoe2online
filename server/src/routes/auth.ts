@@ -224,37 +224,16 @@ async function initializePlayerGame(playerId: number) {
       );
     }
 
-    // Generate initial map resources
-    const resourcePlacements = [
-      { type: MapResourceType.TREE, count: 20, amount: 100 },
-      { type: MapResourceType.SHEEP, count: 8, amount: 50 },
-      { type: MapResourceType.GOLD_ORE, count: 5, amount: 200 },
-      { type: MapResourceType.STONE_ORE, count: 5, amount: 200 }
-    ];
-
-    for (const placement of resourcePlacements) {
-      for (let i = 0; i < placement.count; i++) {
-        let x, y;
-        let attempts = 0;
-        do {
-          x = Math.floor(Math.random() * GAME_CONFIG.GRID_SIZE);
-          y = Math.floor(Math.random() * GAME_CONFIG.GRID_SIZE);
-          attempts++;
-        } while (
-          (Math.abs(x - centerX) < 5 && Math.abs(y - centerY) < 5) &&
-          attempts < 100
-        );
-
-        await client.query(
-          `INSERT INTO map_resources (player_id, type, grid_x, grid_y, amount, max_amount)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           ON CONFLICT DO NOTHING`,
-          [playerId, placement.type, x, y, placement.amount, placement.amount]
-        );
-      }
-    }
+    // TODO: Generate initial map resources (map_resources table not implemented yet)
+    // const resourcePlacements = [
+    //   { type: MapResourceType.TREE, count: 20, amount: 100 },
+    //   { type: MapResourceType.SHEEP, count: 8, amount: 50 },
+    //   { type: MapResourceType.GOLD_ORE, count: 5, amount: 200 },
+    //   { type: MapResourceType.STONE_ORE, count: 5, amount: 200 }
+    // ];
 
     await client.query('COMMIT');
+    console.log(`✓ Initialized game for player ${playerId}: Town Center + ${GAME_CONFIG.STARTING_POPULATION} villagers`);
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

@@ -8,19 +8,20 @@ Key differentiator: **Asynchronous gameplay** with extremely slow pacing (buildi
 
 ## Project Status
 
-**Early stage**: Currently only contains `project.md` specification. No code implementation exists yet.
+**Implemented**: Full-stack application with authentication, database, and basic game structure deployed on Ubuntu VM with Docker.
 
 ## Architecture Decisions (from spec)
 
-- **Monorepo structure**: Single repo with `client/` and `server/` folders using npm/yarn workspaces
-- **Frontend**: React SPA with Vite, focus on modern, responsive UI/UX
-- **Backend**: Node.js with Express
-- **Database**: PostgreSQL (reliable, great for relational game data, JSONB for flexible state)
+- **Monorepo structure**: Single repo with `client/` and `server/` folders using npm workspaces
+- **Frontend**: React SPA with Vite (port 5173), TypeScript, modern responsive UI
+- **Backend**: Node.js with Express (port 3000), TypeScript with ESM modules
+- **Database**: PostgreSQL 16 (Docker container), schema in `server/db/init.sql`
 - **Real-time**: WebSockets via Socket.io (bi-directional, automatic reconnection, room support)
 - **Authentication**: JWT tokens + HTTP-only cookies (secure, stateless, works with WebSockets)
 - **Game State**: Server-authoritative real-time strategy with persistent world state
 - **Core Feature**: 2D grid-based map for player city building placement
-- **Deployment**: Docker Compose for easy self-hosting, scalable to cloud later
+- **Deployment**: Docker Compose for PostgreSQL, Node apps run directly on host for development
+- **Dev execution**: tsx with tsconfig-paths for TypeScript module resolution
 
 ## Implementation Priorities
 
@@ -84,10 +85,58 @@ shared/
 - Test edge cases: concurrent building construction, resource cap overflow
 - Validate Age progression gates work correctly
 
+## Critical Database Schema Reference
+
+**IMPORTANT**: Always use the correct column names from `server/db/init.sql`:
+
+### Players Table
+- `population_current` / `population_max` (NOT `population` / `max_population`)
+
+### Buildings Table
+- `building_type` (NOT `type`)
+- `is_complete` (NOT `is_constructing`)
+- `construction_complete_at` (NOT `construction_completes_at`)
+- `health_current` / `health_max` (always required)
+
+### Units Table
+- `unit_type` (NOT `type`)
+- `is_trained` (NOT `is_training`)
+- `training_complete_at` (NOT `training_completes_at`)
+- `health_current` / `health_max` / `attack` (always required)
+- `current_task` (NOT `task_type`)
+- `task_target_id` (single column for targets)
+
+## Common Pitfalls & Solutions
+
+1. **Environment Variables**:
+   - `dotenv.config()` loads from current working directory
+   - Server must run from project root, not `server/` folder
+   - Use explicit path: `dotenv.config({ path: path.resolve(__dirname, '../../.env') })`
+
+2. **Database Connection**:
+   - `DB_HOST=localhost` when running server on host machine
+   - `DB_HOST=postgres` only works inside Docker network
+   - After changing `.env`, run `docker compose down -v` to reset database
+
+3. **TypeScript Module Resolution**:
+   - Use `tsx` with `tsconfig-paths` for path aliases
+   - Dev script: `tsx watch -r tsconfig-paths/register src/index.ts`
+   - Shared package imports need proper tsconfig paths configuration
+
+4. **Vite Configuration**:
+   - Set `host: '0.0.0.0'` to allow external connections
+   - Add domains to `allowedHosts` array for production domains
+   - Proxy API calls to backend via `/api` route
+
+5. **Docker Volume Issues**:
+   - Old passwords persist in volumes
+   - Always use `docker compose down -v` to fully reset
+   - Check `init.sql` is a file, not a directory
+
 ## Self-Hosting Setup
 
-- **Initial deployment**: Docker Compose on Debian VM (see `DEPLOYMENT.md`)
+- **Initial deployment**: Docker Compose on Ubuntu/Debian VM (see `DEPLOYMENT.md`)
 - **Database**: PostgreSQL container with volume persistence
 - **Environment**: `.env` files for configuration (never commit secrets)
-- **Scripts**: `setup.sh` for automated VM provisioning
+- **Scripts**: `setup.sh` for automated VM provisioning (supports Ubuntu 24.04 and Debian)
 - **Future scaling**: Architecture supports migration to cloud providers (AWS, DigitalOcean, Hetzner)
