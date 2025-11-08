@@ -3,6 +3,7 @@ set -e
 
 echo "=========================================="
 echo "Age of Empires Online - VM Setup Script"
+echo "Supports: Debian 11+, Ubuntu 20.04+"
 echo "=========================================="
 echo ""
 
@@ -38,16 +39,39 @@ sudo apt-get upgrade -y
 echo ""
 echo -e "${GREEN}[2/7] Installing Docker...${NC}"
 if ! command -v docker &> /dev/null; then
+    # Detect OS
+    . /etc/os-release
+    OS_ID=$ID
+    
+    echo "Detected OS: $OS_ID"
+    
     # Install Docker
     sudo apt-get install -y ca-certificates curl gnupg
     sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    
+    # Download Docker GPG key based on OS
+    if [ "$OS_ID" = "ubuntu" ]; then
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    else
+        # Default to Debian
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    fi
+    
     sudo chmod a+r /etc/apt/keyrings/docker.gpg
     
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
-      $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    # Add Docker repository based on OS
+    if [ "$OS_ID" = "ubuntu" ]; then
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    else
+        # Default to Debian
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+          $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    fi
     
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
