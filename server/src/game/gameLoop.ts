@@ -21,8 +21,8 @@ export function startGameLoop() {
 async function processCompletedBuildings() {
   const result = await pool.query(
     `SELECT * FROM buildings 
-     WHERE is_constructing = true 
-     AND construction_completes_at <= NOW()`
+     WHERE is_complete = false 
+     AND construction_complete_at <= NOW()`
   );
 
   for (const building of result.rows) {
@@ -33,7 +33,7 @@ async function processCompletedBuildings() {
       // Mark building as completed
       await client.query(
         `UPDATE buildings 
-         SET is_constructing = false, construction_started_at = NULL, construction_completes_at = NULL
+         SET is_complete = true
          WHERE id = $1`,
         [building.id]
       );
@@ -60,18 +60,18 @@ async function processCompletedBuildings() {
       io.to(`player:${building.player_id}`).emit('building-completed', {
         id: updatedBuilding.rows[0].id,
         playerId: updatedBuilding.rows[0].player_id,
-        type: updatedBuilding.rows[0].type,
+        type: updatedBuilding.rows[0].building_type,
         gridX: updatedBuilding.rows[0].grid_x,
         gridY: updatedBuilding.rows[0].grid_y,
         level: updatedBuilding.rows[0].level,
-        isConstructing: updatedBuilding.rows[0].is_constructing,
+        isComplete: updatedBuilding.rows[0].is_complete,
         constructionStartedAt: updatedBuilding.rows[0].construction_started_at,
-        constructionCompletesAt: updatedBuilding.rows[0].construction_completes_at,
-        createdAt: updatedBuilding.rows[0].created_at,
-        updatedAt: updatedBuilding.rows[0].updated_at
+        constructionCompleteAt: updatedBuilding.rows[0].construction_complete_at,
+        healthCurrent: updatedBuilding.rows[0].health_current,
+        healthMax: updatedBuilding.rows[0].health_max
       });
 
-      console.log(`Building ${building.type} completed for player ${building.player_id}`);
+      console.log(`Building ${building.building_type} completed for player ${building.player_id}`);
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Error processing completed building:', error);
@@ -85,8 +85,8 @@ async function processCompletedBuildings() {
 async function processCompletedUnits() {
   const result = await pool.query(
     `SELECT * FROM units 
-     WHERE is_training = true 
-     AND training_completes_at <= NOW()`
+     WHERE is_trained = false 
+     AND training_complete_at <= NOW()`
   );
 
   for (const unit of result.rows) {
@@ -94,7 +94,7 @@ async function processCompletedUnits() {
       // Mark unit as completed
       await pool.query(
         `UPDATE units 
-         SET is_training = false, training_started_at = NULL, training_completes_at = NULL
+         SET is_trained = true
          WHERE id = $1`,
         [unit.id]
       );
@@ -108,22 +108,18 @@ async function processCompletedUnits() {
       io.to(`player:${unit.player_id}`).emit('unit-completed', {
         id: updatedUnit.rows[0].id,
         playerId: updatedUnit.rows[0].player_id,
-        type: updatedUnit.rows[0].type,
-        gridX: updatedUnit.rows[0].grid_x,
-        gridY: updatedUnit.rows[0].grid_y,
-        isTraining: updatedUnit.rows[0].is_training,
+        type: updatedUnit.rows[0].unit_type,
+        isTrained: updatedUnit.rows[0].is_trained,
         trainingStartedAt: updatedUnit.rows[0].training_started_at,
-        trainingCompletesAt: updatedUnit.rows[0].training_completes_at,
-        task: updatedUnit.rows[0].task_type ? {
-          type: updatedUnit.rows[0].task_type,
-          targetResourceId: updatedUnit.rows[0].task_target_resource_id,
-          targetBuildingId: updatedUnit.rows[0].task_target_building_id
-        } : undefined,
-        createdAt: updatedUnit.rows[0].created_at,
-        updatedAt: updatedUnit.rows[0].updated_at
+        trainingCompleteAt: updatedUnit.rows[0].training_complete_at,
+        healthCurrent: updatedUnit.rows[0].health_current,
+        healthMax: updatedUnit.rows[0].health_max,
+        attack: updatedUnit.rows[0].attack,
+        currentTask: updatedUnit.rows[0].current_task,
+        taskTargetId: updatedUnit.rows[0].task_target_id
       });
 
-      console.log(`Unit ${unit.type} completed for player ${unit.player_id}`);
+      console.log(`Unit ${unit.unit_type} completed for player ${unit.player_id}`);
     } catch (error) {
       console.error('Error processing completed unit:', error);
     }
