@@ -184,9 +184,48 @@ export default function Game() {
             onBuildingSelect={(type) => {
               setSelectedBuildingType(type);
               setSelectedBuilding(null);
+              setSelectedUnit(null);
               console.log('Select a grid position to build', type);
             }}
           />
+          
+          {/* Villager List */}
+          <div className="villager-list">
+            <h3>Villagers ({gameState.units.filter(u => u.type === 'VILLAGER' && u.isTrained).length})</h3>
+            {gameState.units
+              .filter(u => u.type === 'VILLAGER' && u.isTrained)
+              .map(villager => (
+                <div 
+                  key={villager.id} 
+                  className={`villager-item ${selectedUnit?.id === villager.id ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedUnit(villager);
+                    setSelectedBuilding(null);
+                    setSelectedBuildingType(null);
+                  }}
+                  style={{ 
+                    cursor: 'pointer',
+                    padding: '8px',
+                    borderLeft: `4px solid ${villager.currentTask === 'IDLE' ? '#ffd700' : '#32cd32'}`,
+                    marginBottom: '4px',
+                    background: selectedUnit?.id === villager.id ? '#2a3f5f' : '#1a2332'
+                  }}
+                >
+                  <div style={{ fontSize: '12px' }}>
+                    👤 Villager #{villager.id}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#888' }}>
+                    {villager.currentTask?.replace('GATHER_', '') || 'IDLE'}
+                  </div>
+                </div>
+              ))
+            }
+            {gameState.units.filter(u => u.type === 'VILLAGER' && !u.isTrained).length > 0 && (
+              <div style={{ fontSize: '11px', color: '#888', marginTop: '8px' }}>
+                Training: {gameState.units.filter(u => u.type === 'VILLAGER' && !u.isTrained).length}
+              </div>
+            )}
+          </div>
         </aside>
 
         <main className="main-view">

@@ -80,18 +80,14 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       const now = new Date();
       const completionTime = new Date(now.getTime() + (unitDef.trainingTime * 1000) / TIME_ACCELERATION);
 
-      // Spawn unit near the building that trained it
-      const spawnX = building.grid_x + (building.building_type === 'TOWN_CENTER' ? 3 : 2); // Spawn to the right
-      const spawnY = building.grid_y;
-
       // Create unit (health/attack would come from unitDef if it had them)
       const unitHealth = 25; // Default unit HP
       const unitAttack = 5; // Default attack
       const result = await client.query(
-        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task, grid_x, grid_y)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [req.userId, unitType, false, unitHealth, unitHealth, unitAttack, now, completionTime, 'TRAINING', spawnX, spawnY]
+        [req.userId, unitType, false, unitHealth, unitHealth, unitAttack, now, completionTime, 'TRAINING']
       );
 
       await client.query('COMMIT');

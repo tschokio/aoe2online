@@ -227,17 +227,14 @@ async function initializePlayerGame(playerId: number) {
     for (let i = 0; i < GAME_CONFIG.STARTING_POPULATION; i++) {
       const villagerHealth = 25;
       const villagerAttack = 3;
-      // Spawn villagers around the Town Center
-      const spawnX = centerX + 3 + (i % 2); // Spread to the right of Town Center
-      const spawnY = centerY + Math.floor(i / 2);
       
       const unitResult = await client.query(
-        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task, grid_x, grid_y)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7, $8, $9)
+        `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW(), $7)
          RETURNING id`,
-        [playerId, 'VILLAGER', true, villagerHealth, villagerHealth, villagerAttack, 'IDLE', spawnX, spawnY]
+        [playerId, 'VILLAGER', true, villagerHealth, villagerHealth, villagerAttack, 'IDLE']
       );
-      console.log(`[INIT] Villager ${i + 1} created with ID: ${unitResult.rows[0].id} at (${spawnX}, ${spawnY})`);
+      console.log(`[INIT] Villager ${i + 1} created with ID: ${unitResult.rows[0].id}`);
     }
 
     // TODO: Generate initial map resources (map_resources table not implemented yet)
