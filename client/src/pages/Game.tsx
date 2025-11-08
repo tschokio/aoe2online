@@ -174,14 +174,18 @@ export default function Game() {
             units={gameState.units}
             mapResources={gameState.mapResources}
             onBuildingClick={(building) => {
-              // If we're in building mode, place the building
+              // If we're in building mode, cancel it
               if (selectedBuildingType) {
-                // This would need grid coordinates - simplified for now
-                console.log('Would place', selectedBuildingType, 'near', building);
                 setSelectedBuildingType(null);
               } else {
                 // Otherwise, select the building to view info
                 setSelectedBuilding(building);
+              }
+            }}
+            onGridClick={(gridX, gridY) => {
+              if (selectedBuildingType) {
+                handleBuildBuilding(selectedBuildingType, gridX, gridY);
+                setSelectedBuildingType(null);
               }
             }}
           />
@@ -199,18 +203,40 @@ export default function Game() {
                   <p>Completes: {new Date(selectedBuilding.constructionCompleteAt!).toLocaleTimeString()}</p>
                 </div>
               ) : (
-                <div className="building-actions">
-                  {selectedBuilding.type === 'TOWN_CENTER' && (
-                    <button onClick={() => handleTrainUnit(selectedBuilding.id, 'VILLAGER')}>
-                      Train Villager ({UNITS.VILLAGER.cost.food} 🍖)
-                    </button>
+                <>
+                  <div className="building-actions">
+                    {selectedBuilding.type === 'TOWN_CENTER' && (
+                      <button onClick={() => handleTrainUnit(selectedBuilding.id, 'VILLAGER')}>
+                        Train Villager ({UNITS.VILLAGER.cost.food} 🍖)
+                      </button>
+                    )}
+                    {selectedBuilding.type === 'BARRACKS' && (
+                      <button onClick={() => handleTrainUnit(selectedBuilding.id, 'CLUBMAN')}>
+                        Train Clubman ({UNITS.CLUBMAN.cost.food} 🍖)
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Show units in training */}
+                  {gameState.units.filter(u => !u.isTrained && u.currentTask === 'TRAINING').length > 0 && (
+                    <div className="training-queue">
+                      <h4>Training Queue</h4>
+                      {gameState.units
+                        .filter(u => !u.isTrained && u.currentTask === 'TRAINING')
+                        .map(unit => (
+                          <div key={unit.id} className="training-item">
+                            <span>{unit.type}</span>
+                            <span className="timer">
+                              ⏱️ {unit.trainingCompleteAt ? 
+                                new Date(unit.trainingCompleteAt).toLocaleTimeString() : 
+                                'Soon'}
+                            </span>
+                          </div>
+                        ))
+                      }
+                    </div>
                   )}
-                  {selectedBuilding.type === 'BARRACKS' && (
-                    <button onClick={() => handleTrainUnit(selectedBuilding.id, 'CLUBMAN')}>
-                      Train Clubman ({UNITS.CLUBMAN.cost.food} 🍖)
-                    </button>
-                  )}
-                </div>
+                </>
               )}
               
               <button onClick={() => setSelectedBuilding(null)} className="close-btn">

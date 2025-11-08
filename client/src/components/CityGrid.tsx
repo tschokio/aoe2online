@@ -6,17 +6,32 @@ interface CityGridProps {
   units: Unit[];
   mapResources: MapResource[];
   onBuildingClick: (building: Building) => void;
+  onGridClick?: (gridX: number, gridY: number) => void;
 }
 
 const GRID_SIZE = 50;
 const CELL_SIZE = 20; // pixels
 
-export default function CityGrid({ buildings, units, mapResources, onBuildingClick }: CityGridProps) {
+export default function CityGrid({ buildings, units, mapResources, onBuildingClick, onGridClick }: CityGridProps) {
   console.log('[CityGrid] Rendering with:', { 
     buildingCount: buildings.length, 
     buildings: buildings.map(b => ({ type: b.type, x: b.gridX, y: b.gridY })),
     unitCount: units.length 
   });
+
+  const handleSvgClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!onGridClick) return;
+    
+    const svg = e.currentTarget;
+    const rect = svg.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const gridX = Math.floor(x / CELL_SIZE);
+    const gridY = Math.floor(y / CELL_SIZE);
+    
+    onGridClick(gridX, gridY);
+  };
 
   const getBuildingColor = (type: string, isComplete: boolean) => {
     if (!isComplete) return '#7a7a7a'; // Gray for under construction
@@ -51,6 +66,8 @@ export default function CityGrid({ buildings, units, mapResources, onBuildingCli
         width={GRID_SIZE * CELL_SIZE}
         height={GRID_SIZE * CELL_SIZE}
         className="city-grid"
+        onClick={handleSvgClick}
+        style={{ cursor: onGridClick ? 'crosshair' : 'default' }}
       >
         {/* Grid lines */}
         <defs>

@@ -79,7 +79,6 @@ router.post('/', async (req: AuthRequest, res: Response) => {
       // Calculate completion time
       const now = new Date();
       const completionTime = new Date(now.getTime() + (unitDef.trainingTime * 1000) / TIME_ACCELERATION);
-      const isTrained = unitDef.trainingTime === 0;
 
       // Create unit (health/attack would come from unitDef if it had them)
       const unitHealth = 25; // Default unit HP
@@ -88,7 +87,7 @@ router.post('/', async (req: AuthRequest, res: Response) => {
         `INSERT INTO units (player_id, unit_type, is_trained, health_current, health_max, attack, training_started_at, training_complete_at, current_task)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
-        [req.userId, unitType, isTrained, unitHealth, unitHealth, unitAttack, now, completionTime, 'IDLE']
+        [req.userId, unitType, false, unitHealth, unitHealth, unitAttack, now, completionTime, 'TRAINING']
       );
 
       await client.query('COMMIT');
