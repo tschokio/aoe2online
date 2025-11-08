@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx --tsconfig ./tsconfig.json --import tsx/esm watch src/index.ts",
+    "dev": "tsx -r tsconfig-paths/register watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src"
