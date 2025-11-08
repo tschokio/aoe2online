@@ -52,7 +52,12 @@ router.post('/register', async (req, res: Response) => {
     const player = result.rows[0];
 
     // Create starting buildings and units
-    await initializePlayerGame(player.id);
+    try {
+      await initializePlayerGame(player.id);
+    } catch (initError) {
+      console.error('Failed to initialize player game:', initError);
+      // Continue anyway - player can still log in
+    }
 
     // Generate token
     const token = generateToken(player.id);
