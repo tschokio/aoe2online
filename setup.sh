@@ -43,9 +43,14 @@ if ! command -v docker &> /dev/null; then
     . /etc/os-release
     OS_ID=$ID
     
-    echo "Detected OS: $OS_ID"
+    echo "Detected OS: $OS_ID ($VERSION_CODENAME)"
     
-    # Install Docker
+    # Remove any old Docker repository configurations
+    echo "Cleaning up old Docker repositories..."
+    sudo rm -f /etc/apt/sources.list.d/docker.list
+    sudo rm -f /etc/apt/keyrings/docker.gpg
+    
+    # Install Docker prerequisites
     sudo apt-get install -y ca-certificates curl gnupg
     sudo install -m 0755 -d /etc/apt/keyrings
     
@@ -73,7 +78,10 @@ if ! command -v docker &> /dev/null; then
           sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     fi
     
+    echo "Updating package lists with new Docker repository..."
     sudo apt-get update
+    
+    echo "Installing Docker packages..."
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     
     # Add current user to docker group
